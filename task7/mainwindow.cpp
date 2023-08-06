@@ -163,7 +163,7 @@ QVector<double> MainWindow::FindMin(QVector<double> resultData)
 
 }
 
-void MainWindow::AddData(QVector<double> data){
+void MainWindow::AddData(const QVector<double> data){
     for(int i = 0; i < round(FD); i++){
         series->append(i, data.at(i));
     }

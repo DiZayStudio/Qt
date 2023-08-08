@@ -106,6 +106,7 @@ void MainWindow::on_pb_request_clicked()
     dataBase->RequestToDB(request);
 }
 
+
 /*!
  * \brief Слот отображает значение в QTableWidget
  * \param widget
@@ -116,29 +117,48 @@ void MainWindow::ScreenDataFromDB(QSqlTableModel *model, int typeRequest)
     ///Тут должен быть код ДЗ
     switch (typeRequest) {
 
-    case requestAllFilms:
-    case requestHorrors:
-    case requestComedy:{
+    case requestAllFilms:{
+
+        model->setHeaderData(1, Qt::Horizontal, QObject::tr("Название фильма"));
+        model->setHeaderData(2, Qt::Horizontal, QObject::tr("Описание фильма"));
 
         ui->tableView->setModel(model);
+
         ui->tableView->hideColumn(0);
         ui->tableView->resizeColumnsToContents();
-        ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
+        for( int i = 0; i<model->columnCount(); ++i ) {
+            if ( i > 2 ) {
+                ui->tableView->hideColumn(i);
+            }
+        }
         ui->tableView->update();
-//         QStringList hdrs;
-//         for(int i = 0; i < tV->columnCount(); ++i){
-//             hdrs << tV->horizontalHeaderItem(i)->text();
-//         }
 
-//         ui->tb_result->setHorizontalHeaderLabels(hdrs);
+         break;
+        }
+    case requestHorrors:
+    case requestComedy:{
+        QSqlQueryModel *Qmodel = new QSqlQueryModel;
+          Qmodel->setQuery("SELECT title, description FROM film f "
+                           "JOIN film_category fc on f.film_id = fc.film_id "
+                           "JOIN category c on c.category_id = fc.category_id"
+                           "WHERE c.name = 'Comedy'");
+          Qmodel->setHeaderData(0, Qt::Horizontal, tr("Name"));
+          Qmodel->setHeaderData(1, Qt::Horizontal, tr("Salary"));
 
-//         for(int i = 0; i<tV->rowCount(); ++i){
-//             for(int j = 0; j<tV->columnCount(); ++j){
-//                 ui->tb_result->setItem(i,j, tV->item(i,j)->clone());
-//             }
-//         }
+        ui->tableView->setModel(Qmodel);
+        ui->tableView->hideColumn(0);
+        ui->tableView->resizeColumnsToContents();
 
-//         ui->tb_result->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+        for( int i = 0; i<Qmodel->columnCount(); ++i )
+        {
+            if ( i > 2 )
+            {
+                ui->tableView->hideColumn(i);
+            }
+        }
+
+        ui->tableView->update();
 
          break;
      }
@@ -182,4 +202,14 @@ void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
 }
 
 
+
+
+void MainWindow::on_pb_clear_clicked()
+{
+    // очистка tableView
+    ui->tableView->reset();
+  //  ui->tableView->model()->setRowCount(0);
+    ui->tableView->update();
+ //   sig ClearTableView();
+}
 

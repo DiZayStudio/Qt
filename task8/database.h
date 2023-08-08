@@ -55,6 +55,8 @@ private:
     QSqlDatabase* dataBase;
     QSqlQuery* simpleQuery;
     QSqlTableModel* model;
+    QSqlQueryModel* q_model;
+
 };
 
 #endif // DATABASE_H

@@ -7,6 +7,7 @@
 
 
 #define BIND_PORT 12345
+#define BIND_PORT2 12346
 
 class UDPworker : public QObject
 {
@@ -15,6 +16,7 @@ public:
     explicit UDPworker(QObject *parent = nullptr);
     void InitSocket( void );
     void ReadDatagram( QNetworkDatagram datagram);
+    void ReadDatagramText( QNetworkDatagram datagram);
     void SendDatagram(QByteArray data );
     void SendText(QByteArray data );
 
@@ -28,6 +30,7 @@ private:
 
 signals:
     void sig_sendTimeToGUI(QDateTime data);
+    void sig_sendTextToGUI(QHostAddress data, int size);
     void sig_sentText(QByteArray data);
 
 };

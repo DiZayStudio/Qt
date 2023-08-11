@@ -81,23 +81,23 @@ void MainWindow::StartRace(void){
 
     if(ui->rb_qtConcur->isChecked()){
 
-        ui->te_debug->append("Выполни ДЗ!");
-        //Тут должен быть код ДЗ
-//      auto  futReadData = QtConcurrent::run(&MainWindow::ReadFile, this, pathToFile, numberSelectChannel);
-//            whFutReadData.setFuture(futReadData);
+//    QThreadPool pool;
+//     QFuture<void> fut1 = QtConcurrent::run(&pool,[=](){
+//         concurRace1->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());} );
+//     QFuture<void> fut2 = QtConcurrent::run(&pool,[=](){
+//         concurRace2->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());} );
 
-        auto  fut1 = QtConcurrent::run(ExampleRace::DoWork, &number, ui->rb_mutexOn->isChecked(),ui->sb_initNum->value());
-        auto  fut2 = QtConcurrent::run(ExampleRace::DoWork, &number, ui->rb_mutexOn->isChecked(),ui->sb_initNum->value());
+      auto r1 = [=](){concurRace1->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());};
+      auto r2 = [=](){concurRace2->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());};
 
-        whFutReadData.setFuture(fut1);
-
-//        auto reads = [&]{ return ReadFile(pathToFile, numberSelectChannel); };
-//        auto process = [&](QVector<uint32_t> res){ return ProcessFile(res); };
-//        auto finds = [&](QVector<double> res){ mins = FindMin(res);
-//                                               maxs = FindMax(res);
-//                                                DisplayResult(mins, maxs);};
-
-//        QtConcurrent::run(reads).then(process).then(finds);
+      QFuture fut1 = QtConcurrent::run(r1);
+      QFuture fut2 = QtConcurrent::run(r2);
+    }
+    else{
+        emit race1->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
+        emit race2->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
+    }
+}
     }
     else{
         race1->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());

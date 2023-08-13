@@ -19,7 +19,3 @@ void ExampleRace::DoWork(uint32_t* num, bool mutexOn, int numIterat)
 
     emit sig_Finish();
 }
-void ThreadMethod::run()
-{
-
-}

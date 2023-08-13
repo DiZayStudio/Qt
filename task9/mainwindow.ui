@@ -29,16 +29,16 @@
      <widget class="QTextEdit" name="te_result"/>
     </item>
     <item>
-     <widget class="QPushButton" name="pb_stop">
+     <widget class="QPushButton" name="pb_start">
       <property name="text">
-       <string>Остановить передачу</string>
+       <string>Начать передачу</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pb_start">
+     <widget class="QPushButton" name="pb_stop">
       <property name="text">
-       <string>Начать передачу</string>
+       <string>Остановить передачу</string>
       </property>
      </widget>
     </item>
@@ -58,7 +58,7 @@
     <item>
      <widget class="QPushButton" name="pb_send_text">
       <property name="text">
-       <string>Отпарвить датаграмму</string>
+       <string>Отправить датаграмму</string>
       </property>
      </widget>
     </item>

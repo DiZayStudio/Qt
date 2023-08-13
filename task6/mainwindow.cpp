@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -28,11 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
                                   QString::number(ui->sb_initNum->value()*2));
             ui->pb_start->setEnabled(true);
         }
-
     });
 
     connect(race2, &Controller::sig_WorkFinish, [&](){
-
         if(countFinish == 0){
             countFinish++;
         }
@@ -41,12 +37,9 @@ MainWindow::MainWindow(QWidget *parent)
                                  QString::number(ui->sb_initNum->value()*2));
             ui->pb_start->setEnabled(true);
         }
-
     });
 
-
     connect(concurRace1, &ExampleRace::sig_Finish, [&](){
-
         if(countFinish == 0){
             countFinish++;
         }
@@ -58,7 +51,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(concurRace2, &ExampleRace::sig_Finish, [&](){
-
         if(countFinish == 0){
             countFinish++;
         }
@@ -77,31 +69,17 @@ MainWindow::~MainWindow()
 
 //Метод запускает два потока
 void MainWindow::StartRace(void){
-
-
     if(ui->rb_qtConcur->isChecked()){
 
-        ui->te_debug->append("Выполни ДЗ!");
-        //Тут должен быть код ДЗ
-//      auto  futReadData = QtConcurrent::run(&MainWindow::ReadFile, this, pathToFile, numberSelectChannel);
-//            whFutReadData.setFuture(futReadData);
+      auto r1 = [=](){concurRace1->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());};
+      auto r2 = [=](){concurRace2->DoWork(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());};
 
-        auto  fut1 = QtConcurrent::run(ExampleRace::DoWork, &number, ui->rb_mutexOn->isChecked(),ui->sb_initNum->value());
-        auto  fut2 = QtConcurrent::run(ExampleRace::DoWork, &number, ui->rb_mutexOn->isChecked(),ui->sb_initNum->value());
+      QFuture fut1 = QtConcurrent::run(r1).then(r2);
 
-        whFutReadData.setFuture(fut1);
-
-//        auto reads = [&]{ return ReadFile(pathToFile, numberSelectChannel); };
-//        auto process = [&](QVector<uint32_t> res){ return ProcessFile(res); };
-//        auto finds = [&](QVector<double> res){ mins = FindMin(res);
-//                                               maxs = FindMax(res);
-//                                                DisplayResult(mins, maxs);};
-
-//        QtConcurrent::run(reads).then(process).then(finds);
     }
     else{
-        race1->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
-        race2->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
+        emit race1->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
+        emit race2->operate(&number, ui->rb_mutexOn->isChecked(), ui->sb_initNum->value());
     }
 }
 

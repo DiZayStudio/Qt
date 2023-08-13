@@ -21,7 +21,7 @@ void UDPworker::InitSocket()
      * обраотчик принятых пакетов с сокетом
      */
     serviceUdpSocket->bind(QHostAddress::LocalHost, BIND_PORT);
-    serviceUdpSocket2->bind(QHostAddress::LocalHost, 12346);
+    serviceUdpSocket2->bind(QHostAddress::LocalHost, BIND_PORT2);
 
     connect(serviceUdpSocket, &QUdpSocket::readyRead, this, &UDPworker::readPendingDatagrams);
     connect(serviceUdpSocket2, &QUdpSocket::readyRead, this, &UDPworker::readTextDatagrams);
@@ -32,16 +32,23 @@ void UDPworker::InitSocket()
  */
 void UDPworker::ReadDatagram(QNetworkDatagram datagram)
 {
-
     QByteArray data;
     data = datagram.data();
-
 
     QDataStream inStr(&data, QIODevice::ReadOnly);
     QDateTime dateTime;
     inStr >> dateTime;
 
     emit sig_sendTimeToGUI(dateTime);
+}
+
+void UDPworker::ReadDatagramText(QNetworkDatagram datagram)
+{
+    int data_size;
+    data_size = datagram.data().length();
+    QHostAddress addr = datagram.senderAddress();
+
+    emit sig_sendTextToGUI(addr, data_size);
 }
 /*!
  * @brief Метод осуществляет передачу датаграммы
@@ -59,7 +66,7 @@ void UDPworker::SendText(QByteArray data)
     /*
      *  Отправляем данные на localhost и задефайненный порт
      */
-    serviceUdpSocket2->writeDatagram(data, QHostAddress::LocalHost, 12346);
+    serviceUdpSocket2->writeDatagram(data, QHostAddress::LocalHost, BIND_PORT2);
 }
 /*!
  * @brief Метод осуществляет чтение датаграм из сокета
@@ -73,14 +80,12 @@ void UDPworker::readPendingDatagrams( void )
             QNetworkDatagram datagram = serviceUdpSocket->receiveDatagram();
             ReadDatagram(datagram);
     }
-
 }
 
 void UDPworker::readTextDatagrams( void )
 {
     while(serviceUdpSocket2->hasPendingDatagrams()){
             QNetworkDatagram datagram = serviceUdpSocket2->receiveDatagram();
-            ReadDatagram(datagram);
+            ReadDatagramText(datagram);
     }
-
 }

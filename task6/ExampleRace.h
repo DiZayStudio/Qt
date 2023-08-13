@@ -24,11 +24,6 @@ signals:
 };
 
 
-class ThreadMethod : public QThread {
-    private:
-    void run() override;
-};
-
 //Класс-обертка QThread, который будет распределять наш класс по потокам. Именно так правильно использовать QThread,
 //можно переопределить класс run, но разработчики Qt рекомендуют делать именно так.
 class Controller : public QObject
@@ -48,17 +43,14 @@ public:
         workerThread.start(); //Запускаем работу потока
     }
     ~Controller(){
-
         //Завершаем работу потока
         workerThread.quit();
         workerThread.wait();
-
     }
 
 signals:
     void operate( uint32_t *num, bool mutexOn, int numIterat );
     void sig_WorkFinish( void );
-
 };
 
 

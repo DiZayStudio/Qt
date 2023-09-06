@@ -53,9 +53,7 @@ signals:
 
 private:
     QSqlDatabase* dataBase;
-    QSqlQuery* simpleQuery;
-    QSqlTableModel* model;
-    QSqlQueryModel* q_model;
+    QSqlQueryModel* model;
 
 };
 

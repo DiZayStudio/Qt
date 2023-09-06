@@ -5,7 +5,7 @@ DataBase::DataBase(QObject *parent)
 {
 
     dataBase = new QSqlDatabase();
-    simpleQuery = new QSqlQuery();
+    model = new QSqlQueryModel();
 }
 
 DataBase::~DataBase()

@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -35,7 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
     //Добавим БД используя стандартный драйвер PSQL и зададим имя.
     dataBase->AddDataBase(POSTGRE_DRIVER, DB_NAME);
 
-
     stw = new Stopwatch(this);
     timer = new QTimer(this);
 
@@ -59,7 +57,6 @@ MainWindow::~MainWindow()
     delete ui;
     delete form;
 }
-
 
 void MainWindow::on_pB_load_clicked()
 {
@@ -87,14 +84,11 @@ void MainWindow::on_pB_congestion_clicked()
     form->show();
 }
 
-
 void MainWindow::DBConection()
 {
     if(!status_connect){
-
        auto conn = [&]{dataBase->ConnectToDataBase();};
        QtConcurrent::run(conn);
-
     }
     else{
         dataBase->DisconnectFromDataBase(DB_NAME);

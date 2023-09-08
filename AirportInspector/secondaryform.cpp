@@ -11,18 +11,9 @@ secondaryForm::secondaryForm(QWidget *parent) :
     ui->tabWidget->setTabText(0, "Статистика за год");
     ui->tabWidget->setTabText(1, "Статистика за месяц");
 
-    barSet = new QBarSet("За год");
-    series = new QBarSeries;
-    chart = new QChart();
-    chartView = new QChartView(chart);
-
     for(int i=1; i<=12; ++i)
     ui->comboBox->addItem(QLocale::system().monthName(i, QLocale::ShortFormat));
 
-
-    seriesDay = new QLineSeries;
-    chartDay = new QChart();
-    chartViewDay = new QChartView(chartDay);
 
  //   connect(ui->comboBox, currentIndexChanged,this, secondaryForm.PrintStatDay());
 }
@@ -30,23 +21,23 @@ secondaryForm::secondaryForm(QWidget *parent) :
 secondaryForm::~secondaryForm()
 {
     delete ui;
-    delete series;
-    delete chart;
-    delete chartView;
-    delete seriesDay;
-    delete chartDay;
-    delete chartViewDay;
+
 }
 
 void secondaryForm::PrintStatYear()
 {
+        series = new QBarSeries;
+        barSet = new QBarSet("За год");
+        chart = new QChart();
+        chartView = new QChartView(chart);
+
         // отображение статистики за год
         ui->lay_Charts->addWidget(chartView);
 
         for(int i = 0; i < statYear.size(); i++){
             barSet->append(statYear.at(i));
         }
-     //   series->clear();
+
         series->append(barSet);
 
         QStringList categories;
@@ -74,6 +65,10 @@ void secondaryForm::PrintStatYear()
 
 void secondaryForm::PrintStatDay()
 {
+    seriesDay = new QLineSeries;
+    chartDay = new QChart();
+    chartViewDay = new QChartView(chartDay);
+
     seriesDay->clear();
     // отображение статистики по месяцам
     int month = ui->comboBox->currentIndex()+1;
@@ -93,14 +88,23 @@ void secondaryForm::PrintStatDay()
         chartDay->addSeries(seriesDay);
         chartDay->createDefaultAxes();
 
-     //   createDefaultChartView(chart);
+     //  createDefaultChartView(chart);
         chartViewDay->setRenderHint(QPainter::Antialiasing);
         chartViewDay->show();
 }
 
 void secondaryForm::on_pB_close_clicked()
 {
-   // series->remove();
+    chartView->chart()->deleteLater();
+
+//    delete chartView;
+//    delete chartViewDay;
+//    delete chart;
+//    delete chartDay;
+//    delete series;
+//    delete seriesDay;
+//    delete barSet;
+
     this->close();
 }
 
@@ -120,6 +124,7 @@ void secondaryForm::PrintStat(QVector<int> statYear, QVector<QString> statYearTi
 void secondaryForm::on_comboBox_currentIndexChanged(int index)
 {
     //this->PrintStatDay();
-    //sig_CurrentIndexChanged(index);
+    emit sig_CurrentIndexChanged(index);
+
 }
 

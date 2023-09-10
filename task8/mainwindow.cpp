@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
     dataBase = new DataBase(this);
     msg = new QMessageBox(this);
 
-
     //Установим размер вектора данных для подключения к БД
     dataForConnect.resize(NUM_DATA_FOR_CONNECT_TO_DB);
 
@@ -38,14 +37,13 @@ MainWindow::MainWindow(QWidget *parent)
     /*
      * Соединяем сигнал, который передает ответ от БД с методом, который отображает ответ в ПИ
      */
-     connect(dataBase, &DataBase::sig_SendDataFromDB, this, &MainWindow::ScreenDataFromDB);
-
+     connect(dataBase, &DataBase::sig_SendDataFromDBT, this, &MainWindow::ScreenDataFromDBT);
+     connect(dataBase, &DataBase::sig_SendDataFromDBQ, this, &MainWindow::ScreenDataFromDBQ);
     /*
      *  Сигнал для подключения к БД
      */
     connect(dataBase, &DataBase::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
     connect(dataBase, &DataBase::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
-
 }
 
 MainWindow::~MainWindow()
@@ -80,10 +78,8 @@ void MainWindow::on_act_connect_triggered()
        ui->lb_statusConnect->setText("Подключение");
        ui->lb_statusConnect->setStyleSheet("color : black");
 
-
        auto conn = [&]{dataBase->ConnectToDataBase(dataForConnect);};
        QtConcurrent::run(conn);
-
     }
     else{
         dataBase->DisconnectFromDataBase(DB_NAME);
@@ -92,7 +88,6 @@ void MainWindow::on_act_connect_triggered()
         ui->lb_statusConnect->setStyleSheet("color:red");
         ui->pb_request->setEnabled(false);
     }
-
 }
 
 /*!
@@ -100,72 +95,49 @@ void MainWindow::on_act_connect_triggered()
  */
 void MainWindow::on_pb_request_clicked()
 {
-  //   auto req = [&]{dataBase->RequestToDB(request);};
- //   QtConcurrent::run(req);
-
-    dataBase->RequestToDB(request);
+    ui->tableView->setModel(0);
+    ui->tableView->reset();
+    ui->tableView->update();
+     auto req = [&]{dataBase->RequestToDB(ui->cb_category->currentIndex());};
+    QtConcurrent::run(req);
 }
-
 
 /*!
  * \brief Слот отображает значение в QTableWidget
  * \param widget
  * \param typeRequest
  */
-void MainWindow::ScreenDataFromDB(QSqlTableModel *model, int typeRequest)
+void MainWindow::ScreenDataFromDBT(QSqlTableModel *model)
 {
-    ///Тут должен быть код ДЗ
-    switch (typeRequest) {
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Название фильма"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Описание фильма"));
+    ui->tableView->setModel(model);
 
-    case requestAllFilms:{
+    ui->tableView->hideColumn(0);
+    ui->tableView->resizeColumnsToContents();
 
-        model->setHeaderData(1, Qt::Horizontal, QObject::tr("Название фильма"));
-        model->setHeaderData(2, Qt::Horizontal, QObject::tr("Описание фильма"));
-
-        ui->tableView->setModel(model);
-
-        ui->tableView->hideColumn(0);
-        ui->tableView->resizeColumnsToContents();
-
-        for( int i = 0; i<model->columnCount(); ++i ) {
-            if ( i > 2 ) {
-                ui->tableView->hideColumn(i);
-            }
+    for( int i = 0; i<model->columnCount(); ++i ) {
+        if ( i > 2 ) {
+            ui->tableView->hideColumn(i);
         }
-        ui->tableView->update();
+    }
+    ui->tableView->update();
+}
 
-         break;
+void MainWindow::ScreenDataFromDBQ(QSqlQueryModel *model)
+{
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Название фильма"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Описание фильма"));
+    ui->tableView->setModel(model);
+ //   ui->tableView->hideColumn(0);
+    ui->tableView->resizeColumnsToContents();
+
+    for( int i = 0; i<model->columnCount(); ++i ) {
+        if ( i > 2 ) {
+            ui->tableView->hideColumn(i);
         }
-    case requestHorrors:
-    case requestComedy:{
-        QSqlQueryModel *Qmodel = new QSqlQueryModel;
-          Qmodel->setQuery("SELECT title, description FROM film f "
-                           "JOIN film_category fc on f.film_id = fc.film_id "
-                           "JOIN category c on c.category_id = fc.category_id"
-                           "WHERE c.name = 'Comedy'");
-          Qmodel->setHeaderData(0, Qt::Horizontal, tr("Name"));
-          Qmodel->setHeaderData(1, Qt::Horizontal, tr("Salary"));
-
-        ui->tableView->setModel(Qmodel);
-        ui->tableView->hideColumn(0);
-        ui->tableView->resizeColumnsToContents();
-
-        for( int i = 0; i<Qmodel->columnCount(); ++i )
-        {
-            if ( i > 2 )
-            {
-                ui->tableView->hideColumn(i);
-            }
-        }
-
-        ui->tableView->update();
-
-         break;
-     }
-     default:
-         break;
-     }
-
+    }
+    ui->tableView->update();
 }
 /*!
  * \brief Метод изменяет стотояние формы в зависимости от статуса подключения к БД
@@ -196,20 +168,16 @@ void MainWindow::ReceiveStatusRequestToDB(QSqlError err)
         msg->exec();
     }
     else{
-
-        dataBase->ReadAnswerFromDB(requestAllFilms);
+        dataBase->RequestToDB(ui->cb_category->currentIndex());
     }
 }
-
-
 
 
 void MainWindow::on_pb_clear_clicked()
 {
     // очистка tableView
+    ui->tableView->setModel(0);
     ui->tableView->reset();
-  //  ui->tableView->model()->setRowCount(0);
     ui->tableView->update();
- //   sig ClearTableView();
 }
 

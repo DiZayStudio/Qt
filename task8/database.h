@@ -24,9 +24,9 @@ enum fieldsForConnect{
 
 //Типы запросов
 enum requestType{
-    requestAllFilms = 1,
-    requestComedy   = 2,
-    requestHorrors  = 3
+    requestAllFilms = 0,
+    requestComedy   = 1,
+    requestHorrors  = 2
 };
 
 
@@ -40,21 +40,35 @@ public:
 
     void AddDataBase(QString driver, QString nameDB = "");
     void DisconnectFromDataBase(QString nameDb = "");
-    void RequestToDB(QString request);
-    void ReadAnswerFromDB( int answerType );
+    void RequestToDB(int requestType);
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
 
 
 signals:
-   void sig_SendDataFromDB(QSqlTableModel *model, int typeR);
+   void sig_SendDataFromDBT(QSqlTableModel *model);
+   void sig_SendDataFromDBQ(QSqlQueryModel *model);
    void sig_SendStatusConnection(bool);
    void sig_SendStatusRequest(QSqlError err);
 
 private:
     QSqlDatabase* dataBase;
-    QSqlQueryModel* model;
+    QSqlQueryModel* queryModel;
+    QSqlTableModel* tableModel;
 
+    QString request = "SELECT title, release_year, c.name  FROM film f "
+                      "JOIN film_category fc on f.film_id = fc.film_id "
+                      "JOIN category c on c.category_id  = fc.category_id";
+
+    QString request1= "SELECT title, description FROM film f "
+                      "JOIN film_category fc on f.film_id = fc.film_id "
+                      "JOIN category c on c.category_id = fc.category_id "
+                      "WHERE c.name = 'Comedy'";
+
+    QString request2= "SELECT title, description FROM film f "
+                      "JOIN film_category fc on f.film_id = fc.film_id "
+                      "JOIN category c on c.category_id = fc.category_id "
+                      "WHERE c.name = 'Horror'";
 };
 
 #endif // DATABASE_H

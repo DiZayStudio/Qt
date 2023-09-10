@@ -23,7 +23,8 @@ public:
 
 
 public slots:
-    void ScreenDataFromDB(QSqlTableModel *model, int typeRequest);
+    void ScreenDataFromDBT(QSqlTableModel *model);
+    void ScreenDataFromDBQ(QSqlQueryModel *model);
     void ReceiveStatusConnectionToDB(bool status);
     void ReceiveStatusRequestToDB(QSqlError err);
 
@@ -45,16 +46,6 @@ private:
     DbData *dataDb;
     DataBase* dataBase;
     QMessageBox* msg;
-
-
-//    QString request = "SELECT title, release_year, c.name  FROM film f "
-//                      "JOIN film_category fc on f.film_id = fc.film_id "
-//                      "JOIN category c on c.category_id  = fc.category_id";
-
-    QString request = "SELECT title, description FROM film f "
-                      "JOIN film_category fc on f.film_id = fc.film_id "
-                      "JOIN category c on c.category_id = fc.category_id";
-                     // "WHERE c.name = 'Comedy' ('Horror')";
 
 };
 #endif // MAINWINDOW_H

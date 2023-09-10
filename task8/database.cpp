@@ -5,12 +5,15 @@ DataBase::DataBase(QObject *parent)
 {
 
     dataBase = new QSqlDatabase();
-    model = new QSqlQueryModel();
+    queryModel = new QSqlQueryModel();
+    tableModel = new QSqlTableModel();
 }
 
 DataBase::~DataBase()
 {
     delete dataBase;
+    delete tableModel;
+    delete queryModel;
 }
 
 /*!
@@ -20,9 +23,7 @@ DataBase::~DataBase()
  */
 void DataBase::AddDataBase(QString driver, QString nameDB)
 {
-
     *dataBase = QSqlDatabase::addDatabase(driver, nameDB);
-
 }
 
 /*!
@@ -32,7 +33,6 @@ void DataBase::AddDataBase(QString driver, QString nameDB)
  */
 void DataBase::ConnectToDataBase(QVector<QString> data)
 {
-
     dataBase->setHostName(data[hostName]);
     dataBase->setDatabaseName(data[dbName]);
     dataBase->setUserName(data[login]);
@@ -41,14 +41,8 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
 
     ///Тут должен быть код ДЗ
     bool status;
-    status = dataBase->open( );
-
-    if (status) {
-        model = new QSqlTableModel(this, *dataBase);
-     //   q_model = new QSqlQueryModel(this, *dataBase);
-
-        emit sig_SendStatusConnection(status);
-    };
+    status = dataBase->open();
+    emit sig_SendStatusConnection(status);
 }
 
 /*!
@@ -57,46 +51,38 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
  */
 void DataBase::DisconnectFromDataBase(QString nameDb)
 {
-
     *dataBase = QSqlDatabase::database(nameDb);
     dataBase->close();
-
 }
 /*!
  * \brief Метод формирует запрос к БД.
  * \param request - SQL запрос
  * \return
  */
-void DataBase::RequestToDB(QString request)
-{
-    *simpleQuery = QSqlQuery(*dataBase);
-
-    QSqlError err;
-    if(simpleQuery->exec(request) == false){
-        err = simpleQuery->lastError();
-    }
-
-    emit sig_SendStatusRequest(err);
-}
-
-void DataBase::ReadAnswerFromDB(int requestType)
+void DataBase::RequestToDB(int requestType)
 {
     switch (requestType) {
-
     case requestAllFilms:
+        tableModel = new QSqlTableModel(this, *dataBase);
+        tableModel->setTable("film");
+        tableModel->select();
+    emit sig_SendDataFromDBT(tableModel);
+    break;
     case requestComedy:
-    case requestHorrors:
-    {
-        model->setTable("film");
-        model->select();
-        emit sig_SendDataFromDB(model, requestAllFilms);
+        queryModel = new QSqlQueryModel(this);
+        queryModel->setQuery(request1, *dataBase);
+    emit sig_SendDataFromDBQ(queryModel);
         break;
-    }
-
+    case requestHorrors:
+           queryModel = new QSqlQueryModel(this);
+        queryModel->setQuery(request2, *dataBase);
+    emit sig_SendDataFromDBQ(queryModel);
+        break;
     default:
         break;
     }
 }
+
 
 /*!
  * @brief Метод возвращает последнюю ошибку БД

@@ -52,7 +52,6 @@ void secondaryForm::PrintStatYear()
             chart->removeSeries(series);
             chart->removeAxis(axisX);
             chart->removeAxis(axisY);
-
     }
 
     int max = 0;
@@ -65,7 +64,6 @@ void secondaryForm::PrintStatYear()
     }
 
     series->append(barSet);
-
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
 

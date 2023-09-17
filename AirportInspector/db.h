@@ -5,7 +5,7 @@
 #include <QObject>
 #include <QSqlDataBase>
 #include <QSqlQuery>
-
+#include <QtConcurrent>
 #include <QSqlError>
 #include <QDebug>
 
@@ -28,11 +28,12 @@ class db : public QObject
 public:
     explicit db(QObject *parent = nullptr);
     ~db();
+    void AddDataBase(QString driver, QString nameDB = "");
     void RequestToDB(QString request);
     void ReadAnswer(int direction);
     QSqlError GetLastError(void);
     void ConnectToDataBase();
-    void AddDataBase(QString driver, QString nameDB = "");
+
     void DisconnectFromDataBase(QString nameDb = "");
 
 
@@ -41,7 +42,7 @@ signals:
    void sig_SendStatusRequest(QSqlError err);
    void sig_NameAirport(QMap<QString, QString> airport_name);
    void sig_ReceiveStatusRequest(QSqlError err);
-   void sig_PrintSchedule(QVector<QString> flight_no, QVector<QString> time, QVector<QString> airport);
+   void sig_PrintSchedule(QVector<QString> flight_no, QVector<QDateTime> time, QVector<QString> airport);
    void sig_PrintStat(QVector<int> statYear, QVector<QString> statYearTime, QVector<int> statDay, QVector<QString> statDayTime);
 
 private:
@@ -50,8 +51,9 @@ private:
     QVector<QString> data;
 
     QVector<QString> flight_no;
-    QVector<QString> time;
+    QVector<QDateTime> time;
     QVector<QString> airport;
+    bool status_connect = false;
 
 public:
     QMap<QString, QString> airport_name;
@@ -61,7 +63,8 @@ public:
     QVector<QString> statDayDate;
 
 public slots:
-    void GetSchedule(QString request);
+    void DBConection();
+    void GetSchedule(QString request, QDate data);
     void GetStatistics(QString airport);
 
 };

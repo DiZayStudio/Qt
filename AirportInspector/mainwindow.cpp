@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    status_connect = false;
     // Исходное состояние виджетов
     this->setWindowTitle("Инспектор аэропортов");
 
@@ -28,38 +27,36 @@ MainWindow::MainWindow(QWidget *parent)
     dataBase = new db(this);
     msg = new QMessageBox(this);
 
-    form = new secondaryForm();
-    form->hide();
+    statForm = new secondaryForm();
+    statForm->hide();
 
     //Добавим БД используя стандартный драйвер PSQL и зададим имя.
     dataBase->AddDataBase(POSTGRE_DRIVER, DB_NAME);
 
-    stw = new Stopwatch(this);
     timer = new QTimer(this);
-
-    DBConection();
 
     connect(dataBase, &db::sig_SendStatusConnection, this, &MainWindow::ReceiveStatusConnectionToDB);
     connect(dataBase, &db::sig_SendStatusRequest, this, &MainWindow::ReceiveStatusRequestToDB);
-    connect(timer, &QTimer::timeout, this, &MainWindow::DBConection);
+    connect(timer, &QTimer::timeout, dataBase, &db::DBConection);
     connect(dataBase, &db::sig_NameAirport, this, &MainWindow::Get_airport_name);
     connect(this, &MainWindow::sig_GetDataAirport, dataBase, &db::GetSchedule);
     connect(dataBase, &db::sig_PrintSchedule, this, &MainWindow::PrintSchedule);
 
-    connect(form, secondaryForm::sig_GetStatistics, dataBase, &db::GetStatistics);
+    connect(statForm, &secondaryForm::sig_GetStatistics, dataBase, &db::GetStatistics);
     connect(this, &MainWindow::sig_GetStatistics, dataBase, &db::GetStatistics);
-    connect(dataBase, &db::sig_PrintStat, form, secondaryForm::PrintStat);
+    connect(dataBase, &db::sig_PrintStat, statForm, &secondaryForm::PrintStat);
 }
 
 MainWindow::~MainWindow()
 {
     dataBase->DisconnectFromDataBase(DB_NAME);
     delete ui;
-    delete form;
+    delete statForm;
 }
 
 void MainWindow::on_pB_load_clicked()
 {
+    QDate selectedDate = ui->dateEdit->date();
     QString airport_name = ui->cB_airport_name->currentText();
     int direction = ui->cB_direction->currentIndex();
     QString request;
@@ -72,28 +69,18 @@ void MainWindow::on_pB_load_clicked()
                   "JOIN bookings.airports_data ad on ad.airport_code = f.arrival_airport "
                   "WHERE f.departure_airport  = '" + dataBase->airport_name[airport_name] + "'";
         }
-    emit  sig_GetDataAirport(request);
+    emit  sig_GetDataAirport(request, selectedDate);
 }
 
 void MainWindow::on_pB_congestion_clicked()
 {
-    form->setWindowTitle("Загруженность аэропорта " + ui->cB_airport_name->currentText() );
-    form->setWindowModality(Qt::ApplicationModal);
-    form->airportName = dataBase->airport_name[ui->cB_airport_name->currentText()];
+    statForm->setWindowTitle("Загруженность аэропорта " + ui->cB_airport_name->currentText() );
+    statForm->setWindowModality(Qt::ApplicationModal);
+    statForm->airportName = dataBase->airport_name[ui->cB_airport_name->currentText()];
     emit sig_GetStatistics(dataBase->airport_name[ui->cB_airport_name->currentText()]);
-    form->show();
+    statForm->show();
 }
 
-void MainWindow::DBConection()
-{
-    if(!status_connect){
-       auto conn = [&]{dataBase->ConnectToDataBase();};
-       QtConcurrent::run(conn);
-    }
-    else{
-        dataBase->DisconnectFromDataBase(DB_NAME);
-    }
-}
 
 void MainWindow::ReceiveStatusConnectionToDB(bool status)
 {
@@ -138,15 +125,13 @@ void MainWindow::Get_airport_name(QMap<QString, QString> airport_name)
     }
 }
 
-void MainWindow::PrintSchedule(QVector<QString> flight_no, QVector<QString> dataTime, QVector<QString> airport)
+void MainWindow::PrintSchedule(QVector<QString> flight_no, QVector<QDateTime> dateTime, QVector<QString> airport)
 {
     QStandardItemModel *model = new QStandardItemModel;
     ui->tableView->setModel(model);
     ui->tableView->resizeRowsToContents();
     ui->tableView->resizeColumnsToContents();
     QStandardItem *item;
-
-    QDate select_date = ui->dateEdit->date();
 
     //Заголовки столбцов
     QStringList horizontalHeader;
@@ -162,18 +147,13 @@ void MainWindow::PrintSchedule(QVector<QString> flight_no, QVector<QString> data
     model->setHorizontalHeaderLabels(horizontalHeader);
     int j = 0;
     for(int i = 0; i< flight_no.size();++i){
-
-        QDateTime dt = QDateTime::fromString(dataTime[i], "yyyy-MM-ddTHH:mm:ss.zzz");
-
-        if (dt.date() == select_date){
         item = new QStandardItem(flight_no[i]);
         model->setItem(j, 0, item);
-        item = new QStandardItem((dt.time()).toString());
+        item = new QStandardItem((dateTime[i].time()).toString());
         model->setItem(j, 1, item);
         item = new QStandardItem(airport[i]);
         model->setItem(j, 2, item);
         j++;
-        }
     }
     //Выводим данные
     ui->tableView->setModel(model);
@@ -182,5 +162,3 @@ void MainWindow::PrintSchedule(QVector<QString> flight_no, QVector<QString> data
 
     ui->pB_congestion->setEnabled(true);
 }
-
-

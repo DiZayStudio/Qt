@@ -3,7 +3,7 @@
 db::db(QObject *parent)
     : QObject{parent}
 {
-
+    status_connect = false;
     dataBase = new QSqlDatabase();
     query = new QSqlQuery();
 
@@ -24,6 +24,8 @@ db::~db()
 void db::AddDataBase(QString driver, QString nameDB)
 {
     *dataBase = QSqlDatabase::addDatabase(driver, nameDB);
+
+    DBConection();
 }
 
 
@@ -42,6 +44,17 @@ void db::ConnectToDataBase()
     emit sig_SendStatusConnection(status);
 }
 
+void db::DBConection()
+{
+    if(!status_connect){
+       auto conn = [&]{ConnectToDataBase();};
+       auto tmp = QtConcurrent::run(conn);
+    }
+    else{
+        DisconnectFromDataBase(DB_NAME);
+    }
+}
+
 // Метод производит отключение от БД
 void db::DisconnectFromDataBase(QString nameDb)
 {
@@ -49,7 +62,7 @@ void db::DisconnectFromDataBase(QString nameDb)
     dataBase->close();
 }
 
-void db::GetSchedule(QString request)
+void db::GetSchedule(QString request, QDate selectedDate)
 {
     *query = QSqlQuery(*dataBase);
 
@@ -63,9 +76,12 @@ void db::GetSchedule(QString request)
     airport.clear();
 
         while(query->next()){
+            QDateTime dt = QDateTime::fromString(query->value(1).toString(), "yyyy-MM-ddTHH:mm:ss.zzz");
+           if(dt.date() == selectedDate){
            flight_no.push_back(query->value(0).toString());
-           time.push_back(query->value(1).toString());
+           time.push_back(dt);
            airport.push_back(query->value(2).toString());
+           }
         }
     emit sig_PrintSchedule(flight_no, time, airport);
     }

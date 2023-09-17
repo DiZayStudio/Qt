@@ -1,16 +1,16 @@
- #ifndef MAINWINDOW_H
+#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QtConcurrent>
-#include "secondaryform.h"
-#include "db.h"
-#include "stopwatch.h"
-#include  <QTimer>
+#include <QTimer>
 #include <QCalendarWidget>
 #include "QStandardItemModel"
 #include "QStandardItem"
+
+#include "secondaryform.h"
+#include "db.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,11 +24,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-
 signals:
     void sig_RequestToDb(QString request);
-    void sig_GetDataAirport(QString request);
+    void sig_GetDataAirport(QString request, QDate selectedDate);
     void sig_GetStatistics(QString airport);
 
 private slots:
@@ -36,22 +34,19 @@ private slots:
     void on_pB_congestion_clicked();
 
 public slots:
-    void DBConection();
+
     void ReceiveStatusConnectionToDB(bool status);
     void ReceiveStatusRequestToDB(QSqlError err);
     void Get_airport_name(QMap<QString, QString> airport_name);
-    void PrintSchedule(QVector<QString> flight_no, QVector<QString> time, QVector<QString> airport);
+    void PrintSchedule(QVector<QString> flight_no, QVector<QDateTime> dateTime, QVector<QString> airport);
 
 private:
     Ui::MainWindow *ui;
-    secondaryForm *form;
+    secondaryForm *statForm;
     db* dataBase;
     QMessageBox* msg;
-    bool status_connect = false;
 
-    Stopwatch *stw;
     QTimer *timer;
-
     QString request = "SELECT airport_name->>'ru' as \"airportName\", airport_code FROM bookings.airports_data ";
 };
 #endif // MAINWINDOW_H

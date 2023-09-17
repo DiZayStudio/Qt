@@ -24,6 +24,11 @@ public:
     void PrintStatDay();
     void on_comboBox_currentIndexChanged(int index);
 
+    QVector<int> statYear;
+    QVector<QString> statYearTime;
+    QVector<int> statDay;
+    QVector<QString> statDayTime;
+
     QLineSeries *seriesDay;
     QChart *chartDay;
     QChartView *chartViewDay;
@@ -33,22 +38,21 @@ public:
     QChart *chart;
     QChartView *chartView;
 
+    QBarCategoryAxis *axisX;
+    QValueAxis *axisY;
+
+    QValueAxis *axisXDay;
+    QValueAxis *axisYDay;
 public slots:
     void on_pB_close_clicked();
     void PrintStat(QVector<int> statYear, QVector<QString> statYearTime, QVector<int> statDay, QVector<QString> statDayTime);
 
 private:
-    Ui::secondaryForm *ui;
-
-public:
-    QVector<int> statYear;
-    QVector<QString> statYearTime;
-    QVector<int> statDay;
-    QVector<QString> statDayTime;
+    Ui::secondaryForm *ui;  
 
 signals:
-    sig_GetStatistics(QString airport);
-    sig_CurrentIndexChanged(int index);
+    void sig_GetStatistics(QString airport);
+    void sig_CurrentIndexChanged(int index);
 
 };
 

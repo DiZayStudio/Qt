@@ -59,17 +59,8 @@ void MainWindow::on_pB_load_clicked()
     QDate selectedDate = ui->dateEdit->date();
     QString airport_name = ui->cB_airport_name->currentText();
     int direction = ui->cB_direction->currentIndex();
-    QString request;
-    if (direction == 0) {
-        request = "SELECT flight_no, scheduled_arrival, ad.airport_name->>'ru' as \"Name\" from bookings.flights f "
-                  "JOIN bookings.airports_data ad on ad.airport_code = f.departure_airport "
-                  "WHERE f.arrival_airport  = '" + dataBase->airport_name[airport_name] + "'";
-        } else {
-        request = "SELECT flight_no, scheduled_departure, ad.airport_name->>'ru' as \"Name\" from bookings.flights f "
-                  "JOIN bookings.airports_data ad on ad.airport_code = f.arrival_airport "
-                  "WHERE f.departure_airport  = '" + dataBase->airport_name[airport_name] + "'";
-        }
-    emit  sig_GetDataAirport(request, selectedDate);
+
+    emit  sig_GetDataAirport(direction, selectedDate, airport_name);
 }
 
 void MainWindow::on_pB_congestion_clicked()

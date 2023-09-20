@@ -26,7 +26,7 @@ public:
 
 signals:
     void sig_RequestToDb(QString request);
-    void sig_GetDataAirport(QString request, QDate selectedDate);
+    void sig_GetDataAirport(int direction, QDate selectedDate, QString airport_name);
     void sig_GetStatistics(QString airport);
 
 private slots:

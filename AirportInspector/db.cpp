@@ -62,9 +62,20 @@ void db::DisconnectFromDataBase(QString nameDb)
     dataBase->close();
 }
 
-void db::GetSchedule(QString request, QDate selectedDate)
+void db::GetSchedule(int direction, QDate selectedDate, QString airportName)
 {
     *query = QSqlQuery(*dataBase);
+    QString date = "\'"+selectedDate.toString("yyyy.MM.dd")+"\'";
+    QString request;
+    if (direction == 0) {
+        request = "SELECT flight_no, scheduled_arrival, ad.airport_name->>'ru' as \"Name\" from bookings.flights f "
+                  "JOIN bookings.airports_data ad on ad.airport_code = f.departure_airport "
+                  "WHERE (scheduled_arrival::date = date(" + date + ")) and (f.arrival_airport  = '" + airport_name[airportName] + "')";
+        } else {
+        request = "SELECT flight_no, scheduled_departure, ad.airport_name->>'ru' as \"Name\" from bookings.flights f "
+                  "JOIN bookings.airports_data ad on ad.airport_code = f.arrival_airport "
+                  "WHERE (scheduled_departure::date = date(" + date + ")) and (f.departure_airport  = '" + airport_name[airportName] + "')";
+        }
 
     QSqlError err;
     if(query->exec(request) == false){
@@ -76,12 +87,10 @@ void db::GetSchedule(QString request, QDate selectedDate)
     airport.clear();
 
         while(query->next()){
-            QDateTime dt = QDateTime::fromString(query->value(1).toString(), "yyyy-MM-ddTHH:mm:ss.zzz");
-           if(dt.date() == selectedDate){
+           QDateTime dt = QDateTime::fromString(query->value(1).toString(), "yyyy-MM-ddTHH:mm:ss.zzz");
            flight_no.push_back(query->value(0).toString());
            time.push_back(dt);
            airport.push_back(query->value(2).toString());
-           }
         }
     emit sig_PrintSchedule(flight_no, time, airport);
     }

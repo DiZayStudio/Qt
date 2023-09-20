@@ -1,6 +1,5 @@
 #include "secondaryform.h"
 #include "ui_secondaryform.h"
-//#include "db.h"
 
 secondaryForm::secondaryForm(QWidget *parent) :
     QWidget(parent),
@@ -16,42 +15,36 @@ secondaryForm::secondaryForm(QWidget *parent) :
 
     connect(ui->comboBox, &QComboBox::currentIndexChanged,this, &secondaryForm::PrintStatDay);
 
-    series = new QBarSeries;
-    barSet = new QBarSet("За год");
+    series = new QBarSeries(this);
+    barSet = new QBarSet("За год", this);
     chart = new QChart();
     chartView = new QChartView(chart);
-    axisX = new QBarCategoryAxis();
-    axisY = new QValueAxis;
-    axisXDay = new QValueAxis;
-    axisYDay = new QValueAxis;
-    seriesDay = new QLineSeries;
+    axisX = new QBarCategoryAxis(this);
+    axisY = new QValueAxis(this);
+    axisXDay = new QValueAxis(this);
+    axisYDay = new QValueAxis(this);
+    seriesDay = new QLineSeries(this);
     chartDay = new QChart();
-    chartViewDay = new QChartView(chartDay);
+    chartViewDay = new QChartView(chartDay,this);
 }
 
 secondaryForm::~secondaryForm()
 {
-    delete series;
-    delete barSet;
-    delete chart;
-    delete chartView;
-    delete seriesDay;
-    delete chartDay;
-    delete chartViewDay;
-    delete axisX;
-    delete axisY;
-
     delete ui;
 }
 
 void secondaryForm::PrintStatYear()
 {
     //очистка графиков
-    series->clear();
+    //series->clear();
     if(chart->series().isEmpty() == false){
             chart->removeSeries(series);
             chart->removeAxis(axisX);
             chart->removeAxis(axisY);
+    }
+
+    for(; barSet->count() != 0; ){
+        barSet->remove(barSet->count()-1);
     }
 
     int max = 0;
@@ -79,7 +72,7 @@ void secondaryForm::PrintStatYear()
     series->attachAxis(axisX);
     axisY->setTitleText("количество");
     axisY->setLabelFormat("%.0f");
-    axisY->setRange(0,max);
+    axisY->setRange(0, max);
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisY);
 
@@ -101,6 +94,7 @@ void secondaryForm::PrintStatDay()
     // отображение статистики по месяцам
     int month = ui->comboBox->currentIndex()+1;
     int max = 0;
+    int lengthX = 1;
         for(int i = 0; i < statDay.size(); i++){
             if (statDay.at(i)>max){
                 max = statDay.at(i);
@@ -110,13 +104,15 @@ void secondaryForm::PrintStatDay()
             if (month == date){
                QString tmp = statDayTime.at(i).mid(8,2);
             seriesDay->append((statDayTime.at(i).mid(8,2)).toInt(), statDay.at(i));
+            lengthX++;
             }
         }
         chartDay->legend()->hide();
         chartDay->addSeries(seriesDay);
-
+        chartDay->setAnimationOptions(QChart::SeriesAnimations);
         axisXDay->setTitleText("дни");
         axisXDay->setLabelFormat("%.0f");
+        axisXDay->setRange(1, lengthX-1);
 
         axisYDay->setTitleText("количество");
         axisYDay->setLabelFormat("%.0f");
@@ -127,7 +123,7 @@ void secondaryForm::PrintStatDay()
         seriesDay->attachAxis(axisXDay);
         seriesDay->attachAxis(axisYDay);
 
-        axisYDay->setRange(0, max);
+        axisYDay->setRange(0, max+1);
 
         ui->gridLayout->addWidget(chartViewDay);
         chartViewDay->setRenderHint(QPainter::Antialiasing);
@@ -156,4 +152,3 @@ void secondaryForm::on_comboBox_currentIndexChanged(int index)
 {
     emit sig_CurrentIndexChanged(index);
 }
-

@@ -64,7 +64,7 @@ public:
 
 public slots:
     void DBConection();
-    void GetSchedule(QString request, QDate data);
+    void GetSchedule(int direction, QDate selectedDate, QString airportName);
     void GetStatistics(QString airport);
 
 };

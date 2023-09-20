@@ -48,7 +48,7 @@ public slots:
     void PrintStat(QVector<int> statYear, QVector<QString> statYearTime, QVector<int> statDay, QVector<QString> statDayTime);
 
 private:
-    Ui::secondaryForm *ui;  
+    Ui::secondaryForm *ui;
 
 signals:
     void sig_GetStatistics(QString airport);

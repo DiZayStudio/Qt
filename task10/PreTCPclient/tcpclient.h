@@ -19,7 +19,6 @@ public:
     void ConnectToHost(QHostAddress host, uint16_t port);
     void DisconnectFromHost(void);
 
-
 private slots:
 
     void ReadyReed(void);

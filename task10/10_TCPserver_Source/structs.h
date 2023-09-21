@@ -28,8 +28,8 @@ enum StatusMessages{
 
     STATUS_SUCCES = 1,
 
-    ERR_NO_FREE_SPACE = 10 // Недостаточно свободного места
-
+    ERR_NO_FREE_SPACE = 10, // Недостаточно свободного места
+    ERR_ZERO_LEN = 11
 };
 
 /*!

@@ -1,8 +1,6 @@
 #include "tcpclient.h"
 
 
-
-
 /* ServiceHeader
  * Для работы с потоками наши данные необходимо сериализовать.
  * Поскольку типы данных не стандартные перегрузим оператор << Для работы с ServiceHeader
@@ -24,7 +22,6 @@ QDataStream &operator <<(QDataStream &in, ServiceHeader &data){
 
     return in;
 };
-
 
 
 /*
@@ -81,7 +78,7 @@ void TCPclient::ConnectToHost(QHostAddress host, uint16_t port)
     socket->connectToHost(host, port);
 }
 /*
- * \brief Метод отключения о т сервера
+ * \brief Метод отключения от сервера
  */
 void TCPclient::DisconnectFromHost()
 {
@@ -153,19 +150,46 @@ void TCPclient::ReadyReed()
 
 void TCPclient::ProcessingData(ServiceHeader header, QDataStream &stream)
 {
-    switch (header.idData){
+    if(header.status == ERR_NO_FREE_SPACE){
+        emit sig_Error(header.status);
+    } else {
+        switch (header.idData){
 
-    case GET_TIME:{
-        QDateTime time;
-        stream >> time;
-        emit sig_sendTime(time);
-        break;
-    }
-        case GET_SIZE:
-        case GET_STAT:
-        case SET_DATA:
-        case CLEAR_DATA:
+        case GET_TIME:{
+            QDateTime time;
+            stream >> time;
+            emit sig_sendTime(time);
+            break;
+        }
+        case GET_SIZE:{
+            uint32_t size;
+            stream >> size;
+            emit sig_sendFreeSize(size);
+            break;
+        }
+        case GET_STAT:{
+            StatServer stat;
+            stream >> stat.incBytes;
+            stream >> stat.sendBytes;
+            stream >> stat.revPck;
+            stream >> stat.sendPck;
+            stream >> stat.workTime;
+            stream >> stat.clients;
+            emit sig_sendStat(stat);
+            break;
+        }
+        case SET_DATA:{
+            QString replyData;
+            stream >> replyData;
+            emit sig_SendReplyForSetData(replyData);
+            break;
+        }
+        case CLEAR_DATA:{
+            emit sig_Success(header.idData);
+            break;
+        }
         default:
             return;
         }
+    }
 }

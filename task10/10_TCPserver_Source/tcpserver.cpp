@@ -142,6 +142,13 @@ void TCPserver::ProcessingMessage(QDataStream &datastream, ServiceHeader incHead
                 header.len = 0;
                 out << header;
             }
+            else if(incHeader.len == 0){
+
+                header.status = ERR_ZERO_LEN;
+                header.len = 0;
+                out << header;
+
+            }
             else{
                 //Читаем строку.
                 QString str;
@@ -150,7 +157,6 @@ void TCPserver::ProcessingMessage(QDataStream &datastream, ServiceHeader incHead
                 header.len += str.toUtf8().size() + sizeof(int);
                 out << header;
                 out << str;
-
             }
             break;
         }

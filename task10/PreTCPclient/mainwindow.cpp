@@ -14,7 +14,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lb_connectStatus->setText("Отключено");
     ui->lb_connectStatus->setStyleSheet("color: red");
 
-
     //При отключении меняем надписи и доступность полей.
     connect(client, &TCPclient::sig_Disconnected, this, [&]{
 
@@ -28,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->spB_ip2->setEnabled(true);
         ui->spB_ip3->setEnabled(true);
         ui->spB_ip4->setEnabled(true);
-
     });
 
  /*
@@ -36,6 +34,11 @@ MainWindow::MainWindow(QWidget *parent)
  */
     connect(client, &TCPclient::sig_connectStatus, this, &MainWindow::DisplayConnectStatus);
     connect(client, &TCPclient::sig_sendTime, this, &MainWindow::DisplayTime);
+    connect(client, &TCPclient::sig_sendFreeSize, this, &MainWindow::DisplayFreeSpace);
+    connect(client, &TCPclient::sig_sendStat, this, &MainWindow::DisplayStat);
+    connect(client, &TCPclient::sig_SendReplyForSetData, this, &MainWindow::SetDataReply);
+    connect(client, &TCPclient::sig_Success, this, &MainWindow::DisplaySuccess);
+    connect(client, &TCPclient::sig_Error, this, &MainWindow::DisplayError);
 }
 
 MainWindow::~MainWindow()
@@ -52,20 +55,27 @@ void MainWindow::DisplayTime(QDateTime time)
 }
 void MainWindow::DisplayFreeSpace(uint32_t freeSpace)
 {
-
+   ui->tb_result->append("Свободное место на сервере = " + QString::number(freeSpace));
 }
 void MainWindow::SetDataReply(QString replyString)
 {
-
+    ui->tb_result->append("Данные отправленные на сервер: " + replyString);
 }
 void MainWindow::DisplayStat(StatServer stat)
 {
-
+    ui->tb_result->append("Принято байт: " + QString::number(stat.incBytes));
+    ui->tb_result->append("Передано байт: " + QString::number(stat.sendBytes));
+    ui->tb_result->append("Принято пакетов: " + QString::number(stat.revPck));
+    ui->tb_result->append("Время работы сервера: " + QString::number(stat.workTime) + " секунд");
+    ui->tb_result->append("Количество подключенных клиентов: " + QString::number(stat.clients));
 }
 void MainWindow::DisplayError(uint16_t error)
 {
     switch (error) {
-    case ERR_NO_FREE_SPACE:
+    case ERR_NO_FREE_SPACE:{
+        ui->tb_result->append("На сервере закончилась память");
+        break;
+    }
     case ERR_NO_FUNCT:
     default:
         break;
@@ -79,6 +89,7 @@ void MainWindow::DisplaySuccess(uint16_t typeMess)
 {
     switch (typeMess) {
     case CLEAR_DATA:
+    ui->tb_result->append("Данные на сервере очищены");
     default:
         break;
     }
@@ -142,25 +153,40 @@ void MainWindow::on_pb_request_clicked()
 
    switch (ui->cb_request->currentIndex()){
        //Получить время
-   case 0:{
-
-
-       }
+    case 0:{
+        header.idData = GET_TIME;
+        client->SendRequest(header);
+        break;
+    }
        //Получить свободное место
-       case 1:
+    case 1:{
+       header.idData = GET_SIZE;
+       client->SendRequest(header);
+       break;
+    }
        //Получить статистику
-       case 2:
+    case 2:{
+       header.idData = GET_STAT;
+       client->SendRequest(header);
+       break;
+    }
        //Отправить данные
-       case 3:
+    case 3:{
+       header.idData = SET_DATA;
+       header.len = ui->le_data->text().length();
+       client->SendData(header,ui->le_data->text());
+       break;
+    }
        //Очистить память на сервере
-       case 4:
+    case 4:{
+        header.idData = CLEAR_DATA;
+        client->SendRequest(header);
+        break;
+       }
        default:
        ui->tb_result->append("Такой запрос не реализован в текущей версии");
        return;
-
    }
-
-   client->SendRequest(header);
 }
 
 /*!
